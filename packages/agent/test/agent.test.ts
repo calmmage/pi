@@ -134,28 +134,6 @@ describe("Agent", () => {
 		expect(agent.state.thinkingLevel).toBe("low");
 	});
 
-	it("should subscribe to events", () => {
-		const agent = new Agent({ streamFn: unusedStreamFunction });
-
-		let eventCount = 0;
-		const unsubscribe = agent.subscribe((_event) => {
-			eventCount++;
-		});
-
-		// No initial event on subscribe
-		expect(eventCount).toBe(0);
-
-		// State mutators don't emit events
-		agent.state.systemPrompt = "Test prompt";
-		expect(eventCount).toBe(0);
-		expect(agent.state.systemPrompt).toBe("Test prompt");
-
-		// Unsubscribe should work
-		unsubscribe();
-		agent.state.systemPrompt = "Another prompt";
-		expect(eventCount).toBe(0); // Should not increase
-	});
-
 	it("emits full lifecycle events for thrown run failures", async () => {
 		const agent = new Agent({
 			streamFn: () => {

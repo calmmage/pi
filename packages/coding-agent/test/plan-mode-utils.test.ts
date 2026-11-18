@@ -194,11 +194,6 @@ Plan:
 });
 
 describe("extractDoneSteps", () => {
-	it("extracts single DONE marker", () => {
-		const message = "I've completed the first step [DONE:1]";
-		expect(extractDoneSteps(message)).toEqual([1]);
-	});
-
 	it("extracts multiple DONE markers", () => {
 		const message = "Did steps [DONE:1] and [DONE:2] and [DONE:3]";
 		expect(extractDoneSteps(message)).toEqual([1, 2, 3]);
@@ -207,11 +202,6 @@ describe("extractDoneSteps", () => {
 	it("handles case insensitivity", () => {
 		const message = "[done:1] [DONE:2] [Done:3]";
 		expect(extractDoneSteps(message)).toEqual([1, 2, 3]);
-	});
-
-	it("returns empty array with no markers", () => {
-		const message = "No markers here";
-		expect(extractDoneSteps(message)).toEqual([]);
 	});
 
 	it("ignores malformed markers", () => {

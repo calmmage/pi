@@ -39,6 +39,8 @@ describe("SessionManager.newSession with custom id", () => {
 
 	it("generates a UUIDv7 id when no id is provided", () => {
 		const session = SessionManager.inMemory();
+		expect(session.getSessionId()).toMatch(UUID_V7_RE);
+		expect(session.getHeader()!.id).toBe(session.getSessionId());
 		session.newSession();
 		const id = session.getSessionId();
 		expect(id).toBeDefined();
@@ -62,12 +64,6 @@ describe("SessionManager.newSession with custom id", () => {
 		const header = session.getHeader();
 		expect(header).not.toBeNull();
 		expect(header!.id).toBe("header-test-id");
-	});
-
-	it("generates a UUIDv7 id when constructed without an explicit id", () => {
-		const session = SessionManager.inMemory();
-		expect(session.getSessionId()).toMatch(UUID_V7_RE);
-		expect(session.getHeader()!.id).toBe(session.getSessionId());
 	});
 
 	it("uses the provided id when creating a persisted session", () => {

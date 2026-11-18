@@ -189,10 +189,6 @@ describe("findMostRecentSession", () => {
 		rmSync(tempDir, { recursive: true, force: true });
 	});
 
-	it("returns null for empty directory", () => {
-		expect(findMostRecentSession(tempDir)).toBeNull();
-	});
-
 	it("returns null for non-existent directory", () => {
 		expect(findMostRecentSession(join(tempDir, "nonexistent"))).toBeNull();
 	});
@@ -209,6 +205,7 @@ describe("findMostRecentSession", () => {
 	});
 
 	it("returns single valid session file", () => {
+		expect(findMostRecentSession(tempDir)).toBeNull();
 		const file = join(tempDir, "session.jsonl");
 		writeFileSync(file, '{"type":"session","id":"abc","timestamp":"2025-01-01T00:00:00Z","cwd":"/tmp"}\n');
 		expect(findMostRecentSession(tempDir)).toBe(file);
@@ -339,26 +336,6 @@ describe("SessionManager.setSessionFile with corrupted files", () => {
 		rmSync(tempDir, { recursive: true, force: true });
 	});
 
-	it("truncates and rewrites empty file with valid header", () => {
-		const emptyFile = join(tempDir, "empty.jsonl");
-		writeFileSync(emptyFile, "");
-
-		const sm = SessionManager.open(emptyFile, tempDir);
-
-		// Should have created a new session with valid header
-		expect(sm.getSessionId()).toBeTruthy();
-		expect(sm.getHeader()).toBeTruthy();
-		expect(sm.getHeader()?.type).toBe("session");
-
-		// File should now contain a valid header
-		const content = readFileSync(emptyFile, "utf-8");
-		const lines = content.trim().split("\n").filter(Boolean);
-		expect(lines.length).toBe(1);
-		const header = JSON.parse(lines[0]);
-		expect(header.type).toBe("session");
-		expect(header.id).toBe(sm.getSessionId());
-	});
-
 	it("throws and preserves non-empty file without valid header", () => {
 		const noHeaderFile = join(tempDir, "no-header.jsonl");
 		const originalContent =
@@ -397,6 +374,20 @@ describe("SessionManager.setSessionFile with corrupted files", () => {
 		writeFileSync(emptyFile, "");
 
 		const sm1 = SessionManager.open(emptyFile, tempDir);
+
+		// Should have created a new session with valid header
+		expect(sm1.getSessionId()).toBeTruthy();
+		expect(sm1.getHeader()).toBeTruthy();
+		expect(sm1.getHeader()?.type).toBe("session");
+
+		// File should now contain a valid header
+		const content = readFileSync(emptyFile, "utf-8");
+		const lines = content.trim().split("\n").filter(Boolean);
+		expect(lines.length).toBe(1);
+		const header = JSON.parse(lines[0]);
+		expect(header.type).toBe("session");
+		expect(header.id).toBe(sm1.getSessionId());
+
 		const sessionId = sm1.getSessionId();
 
 		const sm2 = SessionManager.open(emptyFile, tempDir);

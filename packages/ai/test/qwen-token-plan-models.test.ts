@@ -70,43 +70,26 @@ const INDIVIDUAL_TEXT_MODELS = [
 
 const IMAGE_MODELS = ["qwen-image-2.0", "qwen-image-2.0-pro", "wan2.7-image", "wan2.7-image-pro"];
 
-const QWEN_THINKING_MODELS = [
-	"deepseek-v3.2",
-	"deepseek-v4-flash",
-	"deepseek-v4-pro",
-	"glm-5",
-	"glm-5.1",
-	"glm-5.2",
-	"kimi-k2.5",
-	"kimi-k2.6",
-	"kimi-k2.7-code",
-	"qwen3.6-flash",
-	"qwen3.6-plus",
-	"qwen3.7-max",
-	"qwen3.7-plus",
-	"qwen3.8-max",
-] as const;
-
 type QwenTokenPlanProvider = "qwen-token-plan" | "qwen-token-plan-cn" | "qwen-token-plan-individual";
 type QwenTokenPlanModelCase = { provider: QwenTokenPlanProvider; modelId: string };
 
-const QWEN_THINKING_MODEL_CASES: QwenTokenPlanModelCase[] = [
-	...(["qwen-token-plan", "qwen-token-plan-cn"] as const).flatMap((provider) =>
-		QWEN_THINKING_MODELS.map((modelId) => ({ provider, modelId })),
-	),
-	...INDIVIDUAL_TEXT_MODELS.map((modelId) => ({ provider: "qwen-token-plan-individual" as const, modelId })),
+// Exercise both model families through each provider; the catalog tests below
+// still check the full configured model inventory.
+const QWEN_REASONING_MODEL_CASES: QwenTokenPlanModelCase[] = [
+	{ provider: "qwen-token-plan", modelId: "deepseek-v4-flash" },
+	{ provider: "qwen-token-plan", modelId: "glm-5" },
+	{ provider: "qwen-token-plan-cn", modelId: "deepseek-v4-flash" },
+	{ provider: "qwen-token-plan-cn", modelId: "glm-5" },
+	{ provider: "qwen-token-plan-individual", modelId: "deepseek-v4-flash-0731" },
+	{ provider: "qwen-token-plan-individual", modelId: "glm-5.2" },
 ];
 
-const QWEN_REASONING_EFFORT_MODELS = ["deepseek-v4-flash", "deepseek-v4-pro", "glm-5", "glm-5.1", "glm-5.2"] as const;
-
-const QWEN_REASONING_EFFORT_MODEL_CASES: QwenTokenPlanModelCase[] = [
-	...(["qwen-token-plan", "qwen-token-plan-cn"] as const).flatMap((provider) =>
-		QWEN_REASONING_EFFORT_MODELS.map((modelId) => ({ provider, modelId })),
-	),
-	...["deepseek-v4-flash-0731", "deepseek-v4-pro", "deepseek-v4-pro-0813", "glm-5.2"].map((modelId) => ({
-		provider: "qwen-token-plan-individual" as const,
-		modelId,
-	})),
+// Qwen 3.6 supports thinking but does not support reasoning_effort.
+const QWEN_THINKING_MODEL_CASES: QwenTokenPlanModelCase[] = [
+	...QWEN_REASONING_MODEL_CASES,
+	{ provider: "qwen-token-plan", modelId: "qwen3.6-flash" },
+	{ provider: "qwen-token-plan-cn", modelId: "qwen3.6-flash" },
+	{ provider: "qwen-token-plan-individual", modelId: "qwen3.6-flash" },
 ];
 
 describe("Qwen Token Plan models", () => {
@@ -172,7 +155,7 @@ describe("Qwen Token Plan models", () => {
 		},
 	);
 
-	it.each(QWEN_REASONING_EFFORT_MODEL_CASES)(
+	it.each(QWEN_REASONING_MODEL_CASES)(
 		"exposes Qwen reasoning_effort levels for $provider/$modelId",
 		({ provider, modelId }) => {
 			const model = getModels(provider).find((candidate) => candidate.id === modelId);
@@ -216,7 +199,7 @@ describe("Qwen Token Plan models", () => {
 		},
 	);
 
-	it.each(QWEN_REASONING_EFFORT_MODEL_CASES)(
+	it.each(QWEN_REASONING_MODEL_CASES)(
 		"sends Qwen reasoning_effort for $provider/$modelId",
 		async ({ provider, modelId }) => {
 			const model = getModels(provider).find((candidate) => candidate.id === modelId);

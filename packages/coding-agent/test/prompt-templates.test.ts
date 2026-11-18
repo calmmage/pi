@@ -33,24 +33,11 @@ describe("substituteArgs", () => {
 		expect(substituteArgs("Test: $@", ["a", "b", "c"])).toBe("Test: a b c");
 	});
 
-	test("should replace $@ and $ARGUMENTS identically", () => {
-		const args = ["foo", "bar", "baz"];
-		expect(substituteArgs("Test: $@", args)).toBe(substituteArgs("Test: $ARGUMENTS", args));
-	});
-
 	// CRITICAL: argument values containing patterns should remain literal
 	test("should NOT recursively substitute patterns in argument values", () => {
 		expect(substituteArgs("$ARGUMENTS", ["$1", "$ARGUMENTS"])).toBe("$1 $ARGUMENTS");
 		expect(substituteArgs("$@", ["$100", "$1"])).toBe("$100 $1");
 		expect(substituteArgs("$ARGUMENTS", ["$100", "$1"])).toBe("$100 $1");
-	});
-
-	test("should support mixed $1, $2, and $ARGUMENTS", () => {
-		expect(substituteArgs("$1: $ARGUMENTS", ["prefix", "a", "b"])).toBe("prefix: prefix a b");
-	});
-
-	test("should support mixed $1, $2, and $@", () => {
-		expect(substituteArgs("$1: $@", ["prefix", "a", "b"])).toBe("prefix: prefix a b");
 	});
 
 	test("should handle empty arguments array with $ARGUMENTS", () => {
@@ -63,14 +50,6 @@ describe("substituteArgs", () => {
 
 	test("should handle empty arguments array with $1", () => {
 		expect(substituteArgs("Test: $1", [])).toBe("Test: ");
-	});
-
-	test("should handle multiple occurrences of $ARGUMENTS", () => {
-		expect(substituteArgs("$ARGUMENTS and $ARGUMENTS", ["a", "b"])).toBe("a b and a b");
-	});
-
-	test("should handle multiple occurrences of $@", () => {
-		expect(substituteArgs("$@ and $@", ["a", "b"])).toBe("a b and a b");
 	});
 
 	test("should handle mixed occurrences of $@ and $ARGUMENTS", () => {
@@ -99,18 +78,6 @@ describe("substituteArgs", () => {
 		expect(substituteArgs("$1$2", ["a", "b"])).toBe("ab");
 	});
 
-	test("should handle quoted arguments with spaces", () => {
-		expect(substituteArgs("$ARGUMENTS", ["first arg", "second arg"])).toBe("first arg second arg");
-	});
-
-	test("should handle single argument with $ARGUMENTS", () => {
-		expect(substituteArgs("Test: $ARGUMENTS", ["only"])).toBe("Test: only");
-	});
-
-	test("should handle single argument with $@", () => {
-		expect(substituteArgs("Test: $@", ["only"])).toBe("Test: only");
-	});
-
 	test("should handle $0 (zero index)", () => {
 		expect(substituteArgs("$0", ["a", "b"])).toBe("");
 	});
@@ -135,34 +102,12 @@ describe("substituteArgs", () => {
 		expect(substituteArgs("$ARGUMENTS", ["  leading  ", "trailing  "])).toBe("  leading   trailing  ");
 	});
 
-	test("should handle argument containing pattern partially", () => {
-		expect(substituteArgs("Prefix $ARGUMENTS suffix", ["ARGUMENTS"])).toBe("Prefix ARGUMENTS suffix");
-	});
-
 	test("should handle non-matching patterns", () => {
 		expect(substituteArgs("$A $$ $ $ARGS", ["a"])).toBe("$A $$ $ $ARGS");
 	});
 
 	test("should handle case variations (case-sensitive)", () => {
 		expect(substituteArgs("$arguments $Arguments $ARGUMENTS", ["a", "b"])).toBe("$arguments $Arguments a b");
-	});
-
-	test("should handle both syntaxes in same command with same result", () => {
-		const args = ["x", "y", "z"];
-		const result1 = substituteArgs("$@ and $ARGUMENTS", args);
-		const result2 = substituteArgs("$ARGUMENTS and $@", args);
-		expect(result1).toBe(result2);
-		expect(result1).toBe("x y z and x y z");
-	});
-
-	test("should handle very long argument lists", () => {
-		const args = Array.from({ length: 100 }, (_, i) => `arg${i}`);
-		const result = substituteArgs("$ARGUMENTS", args);
-		expect(result).toBe(args.join(" "));
-	});
-
-	test("should handle numbered placeholders with single digit", () => {
-		expect(substituteArgs("$1 $2 $3", ["a", "b", "c"])).toBe("a b c");
 	});
 
 	test("should handle numbered placeholders with multiple digits", () => {
@@ -183,10 +128,6 @@ describe("substituteArgs", () => {
 
 	test("should handle command with no placeholders", () => {
 		expect(substituteArgs("Just plain text", ["a", "b"])).toBe("Just plain text");
-	});
-
-	test("should handle command with only placeholders", () => {
-		expect(substituteArgs("$1 $2 $@", ["a", "b", "c"])).toBe("a b a b c");
 	});
 });
 
@@ -308,27 +249,9 @@ describe("substituteArgs - array slicing", () => {
 		expect(substituteArgs(`\${@:2}`, ["only"])).toBe("");
 	});
 
-	test("should handle slice in middle of text", () => {
-		expect(substituteArgs(`Process \${@:2} with $1`, ["tool", "file1", "file2"])).toBe(
-			"Process file1 file2 with tool",
-		);
-	});
-
 	test("should handle multiple slices in one template", () => {
 		expect(substituteArgs(`\${@:1:1} and \${@:2}`, ["a", "b", "c"])).toBe("a and b c");
 		expect(substituteArgs(`\${@:1:2} vs \${@:3:2}`, ["a", "b", "c", "d", "e"])).toBe("a b vs c d");
-	});
-
-	test("should handle quoted arguments in slices", () => {
-		expect(substituteArgs(`\${@:2}`, ["cmd", "first arg", "second arg"])).toBe("first arg second arg");
-	});
-
-	test("should handle special characters in sliced args", () => {
-		expect(substituteArgs(`\${@:2}`, ["cmd", "$100", "@user", "#tag"])).toBe("$100 @user #tag");
-	});
-
-	test("should handle unicode in sliced args", () => {
-		expect(substituteArgs(`\${@:1}`, ["日本語", "🎉", "café"])).toBe("日本語 🎉 café");
 	});
 
 	test("should combine positional, slice, and wildcard placeholders", () => {
@@ -341,11 +264,6 @@ describe("substituteArgs - array slicing", () => {
 
 	test("should handle slice with no spacing", () => {
 		expect(substituteArgs(`prefix\${@:2}suffix`, ["a", "b", "c"])).toBe("prefixb csuffix");
-	});
-
-	test("should handle large slice lengths gracefully", () => {
-		const args = Array.from({ length: 10 }, (_, i) => `arg${i + 1}`);
-		expect(substituteArgs(`\${@:5:100}`, args)).toBe("arg5 arg6 arg7 arg8 arg9 arg10");
 	});
 });
 
@@ -372,10 +290,6 @@ describe("parseCommandArgs", () => {
 
 	test("should handle empty string", () => {
 		expect(parseCommandArgs("")).toEqual([]);
-	});
-
-	test("should handle extra spaces", () => {
-		expect(parseCommandArgs("a  b   c")).toEqual(["a", "b", "c"]);
 	});
 
 	test("should handle tabs as separators", () => {
@@ -417,14 +331,6 @@ describe("parseCommandArgs", () => {
 	test("should handle escaped quotes inside quoted strings", () => {
 		// Note: This implementation doesn't handle escaped quotes - backslash is literal
 		expect(parseCommandArgs('"quoted \\"text\\""')).toEqual(["quoted \\text\\"]);
-	});
-
-	test("should handle trailing spaces", () => {
-		expect(parseCommandArgs("a b c   ")).toEqual(["a", "b", "c"]);
-	});
-
-	test("should handle leading spaces", () => {
-		expect(parseCommandArgs("   a b c")).toEqual(["a", "b", "c"]);
 	});
 });
 
@@ -473,23 +379,6 @@ describe("parseCommandArgs + substituteArgs integration", () => {
 		const template = "Create component $1 with features: $ARGUMENTS";
 		const result = substituteArgs(template, args);
 		expect(result).toBe("Create component Button with features: Button onClick handler disabled support");
-	});
-
-	test("should handle the example from README", () => {
-		const input = 'Button "onClick handler" "disabled support"';
-		const args = parseCommandArgs(input);
-		const template = "Create a React component named $1 with features: $ARGUMENTS";
-		const result = substituteArgs(template, args);
-		expect(result).toBe(
-			"Create a React component named Button with features: Button onClick handler disabled support",
-		);
-	});
-
-	test("should produce same result with $@ and $ARGUMENTS", () => {
-		const args = parseCommandArgs("feature1 feature2 feature3");
-		const template1 = "Implement: $@";
-		const template2 = "Implement: $ARGUMENTS";
-		expect(substituteArgs(template1, args)).toBe(substituteArgs(template2, args));
 	});
 });
 

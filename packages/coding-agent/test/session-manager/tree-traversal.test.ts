@@ -132,13 +132,9 @@ describe("SessionManager append and tree traversal", () => {
 	});
 
 	describe("getPath", () => {
-		it("returns empty array for empty session", () => {
-			const session = SessionManager.inMemory();
-			expect(session.getBranch()).toEqual([]);
-		});
-
 		it("returns single entry path", () => {
 			const session = SessionManager.inMemory();
+			expect(session.getBranch()).toEqual([]);
 			const id = session.appendMessage(userMsg("hello"));
 
 			const path = session.getBranch();
@@ -174,13 +170,9 @@ describe("SessionManager append and tree traversal", () => {
 	});
 
 	describe("getTree", () => {
-		it("returns empty array for empty session", () => {
-			const session = SessionManager.inMemory();
-			expect(session.getTree()).toEqual([]);
-		});
-
 		it("returns single root for linear session", () => {
 			const session = SessionManager.inMemory();
+			expect(session.getTree()).toEqual([]);
 
 			const id1 = session.appendMessage(userMsg("1"));
 			const id2 = session.appendMessage(assistantMsg("2"));
@@ -360,13 +352,9 @@ describe("SessionManager append and tree traversal", () => {
 	});
 
 	describe("getLeafEntry", () => {
-		it("returns undefined for empty session", () => {
-			const session = SessionManager.inMemory();
-			expect(session.getLeafEntry()).toBeUndefined();
-		});
-
 		it("returns current leaf entry", () => {
 			const session = SessionManager.inMemory();
+			expect(session.getLeafEntry()).toBeUndefined();
 
 			session.appendMessage(userMsg("1"));
 			const id2 = session.appendMessage(assistantMsg("2"));
@@ -378,13 +366,9 @@ describe("SessionManager append and tree traversal", () => {
 	});
 
 	describe("getEntry", () => {
-		it("returns undefined for non-existent id", () => {
-			const session = SessionManager.inMemory();
-			expect(session.getEntry("nonexistent")).toBeUndefined();
-		});
-
 		it("returns entry by id", () => {
 			const session = SessionManager.inMemory();
+			expect(session.getEntry("nonexistent")).toBeUndefined();
 
 			const id1 = session.appendMessage(userMsg("first"));
 			const id2 = session.appendMessage(assistantMsg("second"));

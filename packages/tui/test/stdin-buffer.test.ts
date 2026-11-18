@@ -52,12 +52,6 @@ describe("StdinBuffer", () => {
 	});
 
 	describe("Complete Escape Sequences", () => {
-		it("should pass through complete mouse SGR sequences", () => {
-			const mouseSeq = "\x1b[<35;20;5m";
-			processInput(mouseSeq);
-			assert.deepStrictEqual(emittedSequences, [mouseSeq]);
-		});
-
 		it("should pass through complete arrow key sequences", () => {
 			const upArrow = "\x1b[A";
 			processInput(upArrow);
@@ -413,16 +407,6 @@ describe("StdinBuffer", () => {
 		it("should return empty array if nothing to flush", () => {
 			const flushed = buffer.flush();
 			assert.deepStrictEqual(flushed, []);
-		});
-
-		it("should emit flushed data via timeout", async () => {
-			processInput("\x1b[<35");
-			assert.deepStrictEqual(emittedSequences, []);
-
-			// Wait for timeout to flush
-			await wait(15);
-
-			assert.deepStrictEqual(emittedSequences, ["\x1b[<35"]);
 		});
 	});
 

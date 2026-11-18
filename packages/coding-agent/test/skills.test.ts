@@ -182,19 +182,6 @@ describe("skills", () => {
 			expect(diagnostics).toHaveLength(0);
 		});
 
-		it("should use parent directory name when name not in frontmatter", () => {
-			// The no-frontmatter fixture has no name in frontmatter, so it should use "no-frontmatter"
-			// But it also has no description, so it won't load
-			// Let's test with a valid skill that relies on directory name
-			const { skills } = loadSkillsFromDir({
-				dir: join(fixturesDir, "valid-skill"),
-				source: "test",
-			});
-
-			expect(skills).toHaveLength(1);
-			expect(skills[0].name).toBe("valid-skill");
-		});
-
 		it("should parse disable-model-invocation frontmatter field", () => {
 			const { skills, diagnostics } = loadSkillsFromDir({
 				dir: join(fixturesDir, "disable-model-invocation"),

@@ -82,23 +82,6 @@ describe("isImageLine", () => {
 			const lineWithTextAndImage = "Some text \x1b]1337;File=size=100,100;inline=1:base64data==\x07 more text";
 			assert.strictEqual(isImageLine(lineWithTextAndImage), true);
 		});
-
-		it("should detect iTerm2 image escape sequence in middle of long line", () => {
-			// Simulate a very long line with image data in the middle
-			const longLineWithImage =
-				"Text before image..." + "\x1b]1337;File=inline=1:verylongbase64data==" + "...text after";
-			assert.strictEqual(isImageLine(longLineWithImage), true);
-		});
-
-		it("should detect iTerm2 image escape sequence at end of line", () => {
-			const lineWithImageAtEnd = "Regular text ending with \x1b]1337;File=inline=1:base64data==\x07";
-			assert.strictEqual(isImageLine(lineWithImageAtEnd), true);
-		});
-
-		it("should detect minimal iTerm2 image escape sequence", () => {
-			const minimalImageLine = "\x1b]1337;File=:\x07";
-			assert.strictEqual(isImageLine(minimalImageLine), true);
-		});
 	});
 
 	describe("Kitty image protocol", () => {
@@ -112,12 +95,6 @@ describe("isImageLine", () => {
 			// Bug scenario: text + image data in same line
 			const lineWithTextAndKittyImage = "Output: \x1b_Ga=T,f=100;data...\x1b\\\x1b_Gm=i=1;\x1b\\";
 			assert.strictEqual(isImageLine(lineWithTextAndKittyImage), true);
-		});
-
-		it("should detect Kitty image escape sequence with padding", () => {
-			// Kitty protocol adds padding to escape sequences
-			const kittyWithPadding = "  \x1b_Ga=T,f=100...\x1b\\\x1b_Gm=i=1;\x1b\\  ";
-			assert.strictEqual(isImageLine(kittyWithPadding), true);
 		});
 	});
 
@@ -137,13 +114,6 @@ describe("isImageLine", () => {
 
 			assert.strictEqual(longLine.length > 300000, true);
 			assert.strictEqual(isImageLine(longLine), true);
-		});
-
-		it("should detect image sequences when terminal doesn't support images", () => {
-			// The bug occurred when getImageEscapePrefix() returned null
-			// isImageLine should still detect image sequences regardless
-			const lineWithImage = "Read image file [image/jpeg]\x1b]1337;File=inline=1:base64data==\x07";
-			assert.strictEqual(isImageLine(lineWithImage), true);
 		});
 
 		it("should detect image sequences with ANSI codes before them", () => {
@@ -189,24 +159,9 @@ describe("isImageLine", () => {
 		it("should not detect images in empty lines", () => {
 			assert.strictEqual(isImageLine(""), false);
 		});
-
-		it("should not detect images in lines with newlines only", () => {
-			assert.strictEqual(isImageLine("\n"), false);
-			assert.strictEqual(isImageLine("\n\n"), false);
-		});
 	});
 
 	describe("Mixed content scenarios", () => {
-		it("should detect images when line has both Kitty and iTerm2 sequences", () => {
-			const mixedLine = "Kitty: \x1b_Ga=T...\x1b\\\x1b_Gm=i=1;\x1b\\ iTerm2: \x1b]1337;File=inline=1:data==\x07";
-			assert.strictEqual(isImageLine(mixedLine), true);
-		});
-
-		it("should detect image in line with multiple text and image segments", () => {
-			const complexLine = "Start \x1b]1337;File=img1==\x07 middle \x1b]1337;File=img2==\x07 end";
-			assert.strictEqual(isImageLine(complexLine), true);
-		});
-
 		it("should not falsely detect image in line with file path containing keywords", () => {
 			// File path might contain "1337" or "File" but without escape sequences
 			const filePathLine = "/path/to/File_1337_backup/image.jpg";

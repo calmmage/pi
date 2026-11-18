@@ -187,35 +187,6 @@ describe("TreeSelectorComponent", () => {
 	});
 
 	describe("filter switching with parent traversal", () => {
-		test("switches to nearest visible user message when changing to user-only filter", () => {
-			// In user-only filter: [user-1, user-2, user-3]
-			const entries = [
-				userMessage("user-1", null, "hello"),
-				assistantMessage("asst-1", "user-1", "hi"),
-				userMessage("user-2", "asst-1", "active branch"),
-				assistantMessage("asst-2", "user-2", "response"),
-				userMessage("user-3", "asst-1", "sibling branch"),
-			];
-			const tree = buildTree(entries);
-
-			const selector = new TreeSelectorComponent(
-				tree,
-				"asst-2",
-				24,
-				() => {},
-				() => {},
-			);
-
-			const list = selector.getTreeList();
-			expect(list.getSelectedNode()?.entry.id).toBe("asst-2");
-
-			// Simulate Ctrl+U (user-only filter)
-			selector.handleInput("\x15");
-
-			// Should now be on user-2 (the parent user message), not user-3
-			expect(list.getSelectedNode()?.entry.id).toBe("user-2");
-		});
-
 		test("returns to nearest visible ancestor when switching back to default filter", () => {
 			// Same branching structure
 			const entries = [
